@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Add event-sourced `FocusTimer`, `TimerConfig`, `TimerEvent` hierarchy, `TimerState`, `MemoryEventStore`, `LogCodec`, `Stats`, and `FocusTimerException`.
 - Initial project structure from the factory utility template.

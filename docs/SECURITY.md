@@ -1,26 +1,12 @@
-# Security notes
+# Security & Threat Model
 
-## Threat model
+## Defended Threats
 
-The Dart package `trysac_flutter_focus_timer` is a pure library without I/O. The main risks are:
+- **Resource Exhaustion**: `LogCodec.decode` rejects inputs over 16,777,216 characters. `MemoryEventStore` rejects events beyond 100,000 entries.
+- **Invalid Configuration**: All constructors validate durations (1 minute to 4 hours) and cycle counts (1 to 12). Tags are limited to 40 characters.
+- **Input Sanitization**: `FocusTimerException` truncates error messages containing input snippets to 200 characters to prevent log flooding.
+- **Platform Safety**: The library contains no `dart:io`, `dart:html`, or `package:flutter` imports, ensuring no unauthorized file, network, or UI access.
 
-- **Supply chain**: a compromised package or CI action. Mitigation: Dart SDK libraries only, every
-  package pinned with its SHA-256 by the committed `pubspec.lock` (installs run
-  `dart pub get --enforce-lockfile`), pub.dev's security advisories and OSV-Scanner over
-  `pubspec.lock` in the gates, Dependabot weekly updates, actions pinned by commit SHA, minimal
-  workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files and pub credentials are never committed.
-- **Insecure code**: processes run through a shell, code loaded from a URI or invoked by name
-  through `dart:mirrors`, disabled TLS verification, predictable random tokens. Mitigation:
-  `dart analyze` with the strict modes and the lints package, and the factory's Semgrep rules
-  (`.semgrep/factory-rules.yml`, `nosemgrep` ignored); fix the code instead of silencing it.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and throw
-  explicit, documented errors; never build a shell command line from data.
+## Not Defended
 
-## Publishing
-
-Releases are git tags; publishing on pub.dev needs a verified publisher account, whose
-credentials are never stored in the repository.
-
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- **Persistence Layer Integrity**: The library assumes the provided `EventStore` correctly persists data across application sessions. It does not encrypt logs; data security at rest is the responsibility of the host application.
