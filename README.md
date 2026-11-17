@@ -1,54 +1,48 @@
-# flutter-focus-timer
+# trysac_flutter_focus_timer
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/Trysac/u960-flutter-focus-timer/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u960-flutter-focus-timer/actions/workflows/ci.yml)
+Local-first Pomodoro engine rebuilt from an append-only event log, with suspend-safe catch-up on an injected clock, streak statistics, and a versioned JSON export.
 
-Local-first Pomodoro engine rebuilt from an append-only event log, with suspend-safe catch-up on an injected clock, streak statistics and a versioned JSON export
+## The Problem
 
-## Problem
+Focus timer apps often count ticks in memory, causing them to lose time whenever the operating system suspends the app or a browser tab throttles background timers. This leads to drift between the timer state and reality. This package solves the issue by modeling the timer as an append-only log of timestamped events, allowing the state to be reconstructed deterministically from timestamps.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+## Installation
 
-## Install
-
-```sh
-dart pub add trysac_flutter_focus_timer
-```
-
-Until it is published on pub.dev, depend on a release tag in `pubspec.yaml`:
+Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  trysac_flutter_focus_timer:
-    git:
-      url: https://github.com/Trysac/u960-flutter-focus-timer.git
-      ref: v0.1.0
+  trysac_flutter_focus_timer: any
 ```
 
-Requires Dart 3.14 or newer. No dependencies outside the Dart SDK.
-
-## Usage
+## Usage Example
 
 ```dart
 import 'package:trysac_flutter_focus_timer/trysac_flutter_focus_timer.dart';
 
 void main() {
-  // normalize trims surrounding whitespace and lower-cases the text.
-  print(normalize('  Hello World ')); // hello world
-
-  // Blank input is rejected explicitly instead of returning an empty string.
-  normalize('   '); // throws BlankInputError ("input is blank")
+  final store = MemoryEventStore();
+  final timer = FocusTimer(TimerConfig(), store);
+  timer.startFocus(DateTime.utc(2026, 1, 5, 9, 0), tag: 'deep-work');
+  final state = timer.tick(DateTime.utc(2026, 1, 5, 9, 25));
+  print('${state.phase} completed=${state.completedFocusCount}');
 }
 ```
 
-## Documentation
+## Public API
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+- `TimerConfig`: Configuration for `focus` (25m), `shortBreak` (5m), `longBreak` (15m), and `longBreakEvery` (4 cycles). Validates durations (1m to 4h) and cycles (1-12).
+- `TimerEvent` (sealed): `FocusStarted`, `BreakStarted`, `Paused`, `Resumed`, `FocusCompleted`, `BreakCompleted`, `Skipped`, `Reset`.
+- `FocusTimer`: The state machine. Methods: `startFocus`, `pause`, `resume`, `skip`, `reset`, `tick`, `state`, `changes`.
+- `EventStore`: Interface for persistence, with `MemoryEventStore` implementation (default `maxEvents: 100000`).
+- `LogCodec`: Handles JSON export (`encode`) and import (`decode`) with version checking and size limits.
+- `Stats`: Computation engine for focus minutes, streaks, and completion rates with `utcOffset` support.
+- `FocusTimerException`: Typed error codes (`invalid_transition`, `invalid_config`, `clock_went_backwards`, `corrupt_log`, `unsupported_version`, `input_too_large`, `log_full`).
 
-## License
+## Why not traditional tick-counting alternatives?
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+Traditional packages rely on `Timer.periodic`, which drifts during suspension. This package is state-reconstructed from timestamps, ensuring consistency even after app restarts or long periods of inactivity.
+
+## Security
+
+See [docs/SECURITY.md](docs/SECURITY.md) for the threat model and resource limits.
