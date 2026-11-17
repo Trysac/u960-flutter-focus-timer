@@ -1,0 +1,12 @@
+# gitleaks configuration: default rules plus local-only paths that are never committed.
+title = "flutter-focus-timer gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "pub and local tool output (ignored by git)"
+paths = [
+  '''(^|/)\.dart_tool/''',
+  '''(^|/)(build|coverage|doc/api)/''',
+]

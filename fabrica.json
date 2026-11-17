@@ -1,0 +1,1 @@
+{"lang": "dart", "package": "trysac_flutter_focus_timer", "commands": {"install": [["dart", "pub", "get", "--enforce-lockfile"]], "check": [["dart", "run", "scripts/check.dart"]]}}

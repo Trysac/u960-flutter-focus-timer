@@ -1,0 +1,16 @@
+# pub: packages live in PUB_CACHE, never in the repository; .dart_tool/ is pub's and the analyzer's local state
+/.dart_tool/
+/build/
+
+# Tool caches and reports
+/coverage/
+/doc/api/
+
+# IDE
+.idea/
+.vscode/
+
+# Local environment
+.env
+.env.*
+!.env.example

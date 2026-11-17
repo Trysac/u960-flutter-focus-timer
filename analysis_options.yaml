@@ -1,0 +1,41 @@
+# The analyzer's configuration: the lints package's recommended set, the strict language modes and the rules below.
+# `dart analyze --fatal-infos` (the lint gate) fails on any diagnostic, infos included. Factory-owned file: agents must
+# not edit it, and `// ignore:` comments are refused by the lint gate.
+include: package:lints/recommended.yaml
+
+# `dart format` (the format gate) wraps code at 120 columns, the factory's width.
+formatter:
+  page_width: 120
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    - .dart_tool/**
+    - build/**
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_dynamic_calls
+    - avoid_print
+    - avoid_slow_async_io
+    - avoid_type_to_string
+    - cancel_subscriptions
+    - close_sinks
+    - comment_references
+    - directives_ordering
+    - only_throw_errors
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_single_quotes
+    - public_member_api_docs
+    - sort_pub_dependencies
+    - test_types_in_equals
+    - throw_in_finally
+    - type_annotate_public_apis
+    - unawaited_futures
+    - unnecessary_statements
+    - unreachable_from_main

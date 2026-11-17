@@ -1,0 +1,61 @@
+# Semgrep CE rules owned by the factory (MIT, like this repository). The semgrep gate in scripts/check.dart runs only
+# this file; Semgrep-maintained registry rules are never used (their license forbids distribution and service use).
+# Every rule is ERROR: a match fails the gate. Factory-owned file: agents must not edit it.
+rules:
+  - id: fabrica.dart.shell-exec
+    languages: [dart]
+    severity: ERROR
+    message: Running a process through a shell (runInShell true, or sh, bash or cmd with -c or /c) parses its arguments as a command line and allows command injection. Pass the program and its arguments as a list without a shell instead.
+    pattern-either:
+      - pattern: "Process.run(..., runInShell: true, ...)"
+      - pattern: "Process.runSync(..., runInShell: true, ...)"
+      - pattern: "Process.start(..., runInShell: true, ...)"
+      - patterns:
+          - pattern-either:
+              - pattern: Process.run($SHELL, [$FLAG, ...], ...)
+              - pattern: Process.runSync($SHELL, [$FLAG, ...], ...)
+              - pattern: Process.start($SHELL, [$FLAG, ...], ...)
+          - metavariable-regex:
+              metavariable: $SHELL
+              regex: ^['"](/bin/|/usr/bin/)?(sh|bash|zsh|dash|cmd|cmd\.exe|powershell|pwsh)['"]$
+          - metavariable-regex:
+              metavariable: $FLAG
+              regex: ^['"](-c|/c|/C|-Command)['"]$
+  - id: fabrica.dart.code-loading
+    languages: [dart]
+    severity: ERROR
+    message: Isolate.spawnUri runs Dart code loaded from a URI, and dart:mirrors invokes members chosen by name at run time; with input in the URI or the name, the input chooses which code runs. Dispatch over an explicit list of allowed operations instead.
+    pattern-either:
+      - pattern: Isolate.spawnUri(...)
+      - pattern-regex: import\s+['"]dart:mirrors['"]
+  - id: fabrica.dart.tls-verification-disabled
+    languages: [dart]
+    severity: ERROR
+    message: A badCertificateCallback accepts certificates that failed verification, so any server can impersonate the real one. Trust the needed certificate through a SecurityContext instead.
+    pattern-either:
+      - pattern: $CLIENT.badCertificateCallback = $CALLBACK
+      - pattern: $CLIENT..badCertificateCallback = $CALLBACK
+      - pattern: "HttpClient(...)..badCertificateCallback = $CALLBACK"
+  - id: fabrica.dart.insecure-random
+    languages: [dart]
+    severity: ERROR
+    message: dart:math's Random() is not cryptographically secure, so a token, key, password or nonce made with it can be predicted. Use Random.secure().
+    patterns:
+      - pattern-either:
+          - pattern: final $VAR = <... Random(...) ...>;
+          - pattern: var $VAR = <... Random(...) ...>;
+          - pattern: $TYPE $VAR = <... Random(...) ...>;
+          - pattern: $VAR = <... Random(...) ...>;
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(token|secret|password|passwd|nonce|salt|key|otp).*
+  - id: fabrica.dart.hardcoded-secret
+    languages: [dart]
+    severity: ERROR
+    message: A credential (private key, AKIA access key, GitHub, Slack or Stripe token) is hard-coded in the source. Read it from the environment.
+    pattern-either:
+      - pattern-regex: -----BEGIN (RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----
+      - pattern-regex: \b(AKIA|ASIA)[0-9A-Z]{16}\b
+      - pattern-regex: \bgh[pousr]_[A-Za-z0-9]{36}\b
+      - pattern-regex: \bxox[baprs]-[A-Za-z0-9-]{10,}\b
+      - pattern-regex: \bsk_live_[A-Za-z0-9]{24,}\b

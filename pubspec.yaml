@@ -1,0 +1,16 @@
+# The package and its tools. Factory-owned file: agents must not edit it; `dart run scripts/add_dependency.dart` adds a
+# dependency and pubspec.lock pins every package with its SHA-256 (installs run `dart pub get --enforce-lockfile`).
+name: trysac_flutter_focus_timer
+description: "Local-first Pomodoro engine rebuilt from an append-only event log, with suspend-safe catch-up on an injected clock, streak statistics and a versioned JSON export"
+version: 0.1.0
+repository: https://github.com/Trysac/u960-flutter-focus-timer
+issue_tracker: https://github.com/Trysac/u960-flutter-focus-timer/issues
+
+environment:
+  sdk: ^3.14.0
+
+dev_dependencies:
+  coverage: 1.16.0
+  kiri_check: 1.4.0
+  lints: 6.1.0
+  test: 1.33.0

@@ -1,0 +1,4 @@
+# package:test configuration. Factory-owned file: agents must not edit it. Tests tagged `conformance` (external tools
+# or downloads) run only in CI: scripts/check.dart excludes the tag unless FABRICA_CI=1.
+tags:
+  conformance:
